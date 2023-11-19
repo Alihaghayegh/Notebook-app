@@ -7,7 +7,7 @@ from .models import Note
 from .serializers import NoteSerializer
 
 
-# Get all of the notes
+# Get all the notes
 @api_view(['GET'])
 def note_collection(request):
     if request.method == 'GET':
