@@ -1,19 +1,29 @@
-from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
 from .models import Note
 from .serializers import NoteSerializer
 
 
 # Get all the notes
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def note_collection(request):
     if request.method == 'GET':
         notes = Note.objects.all()
         serializer = NoteSerializer(notes, many=True)
         return Response(serializer.data)
+    elif request.method == 'POST':
+        data = {'title': request.data.get('title'),
+                'author': request.user.pk,
+                'content': request.data.get('content')
+                }
+        serializer = NoteSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Get one note by primary key
@@ -24,5 +34,5 @@ def note_element(request, pk):
     except Note.DoesNotExist:
         return HttpResponse(status=404)
     if request.method == 'GET':
-        serializer = NoteSerializer(Note)
+        serializer = NoteSerializer(note)
         return Response(serializer.data)
